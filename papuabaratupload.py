@@ -128,16 +128,13 @@ uploaded_file = st.sidebar.file_uploader(
 )
 
 if uploaded_file is not None:
-    # pakai data upload
     df = load_uploaded_data(uploaded_file)
-    # tebak nama wilayah dari nama file, tapi bisa diedit
     inferred_region = uploaded_file.name.replace(".xlsx", "").replace("_", " ").title()
     region_name = st.sidebar.text_input(
         "Nama wilayah untuk ditampilkan", value=inferred_region
     )
     source_info = f"Data dari file upload: **{uploaded_file.name}**"
 else:
-    # pakai data default Papua Barat
     df = load_default_data()
     region_name = DEFAULT_REGION
     source_info = f"Data default dari file lokal: **{DEFAULT_FILE}**"
@@ -197,6 +194,10 @@ if "curah_hujan" in available_vars:
     agg_dict["curah_hujan"] = "sum"
 
 monthly = df.groupby(["Tahun", "Bulan"]).agg(agg_dict).reset_index()
+
+# 👉 BAGIAN BARU: TAMPILKAN DATA BULANAN
+st.markdown('<div class="section-title">📊 Data Bulanan (ringkasan)</div>', unsafe_allow_html=True)
+st.dataframe(monthly, use_container_width=True)
 
 # ================== TRAIN MODEL =======================
 models = {}
@@ -265,7 +266,7 @@ fig1 = px.line(
     markers=True,
     title=f"{var_plot} di {region_name}",
     template="plotly_white",
-    color_discrete_sequence=["#0F766E"]  # hijau teal
+    color_discrete_sequence=["#0F766E"]
 )
 
 st.plotly_chart(fig1, use_container_width=True)
@@ -295,15 +296,13 @@ fig2 = px.line(
     y=f"Pred_{key2}",
     title=f"Prediksi {var_pred} di {region_name}",
     template="plotly_white",
-    color_discrete_sequence=["#22C55E"]  # hijau lebih terang
+    color_discrete_sequence=["#22C55E"]
 )
 
 st.plotly_chart(fig2, use_container_width=True)
 
 # ================== DOWNLOAD =======================
 csv = future.to_csv(index=False).encode("utf8")
-
-# bikin nama file sesuai nama wilayah (lowercase + underscore)
 file_slug = region_name.lower().replace(" ", "_")
 download_name = f"prediksi_{file_slug}.csv"
 
